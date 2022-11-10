@@ -21,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   double gravity = -4.9;
   bool isGameRunning = false;
 
+  int score = 0;
+
   List<GlobalKey> globalKeys = [];
   GlobalKey shipGlobalKey = GlobalKey();
 
@@ -29,20 +31,20 @@ class _HomeScreenState extends State<HomeScreen> {
   List<AsteriodData> setAsteroidData() {
     List<AsteriodData> data = [
       AsteriodData(
-        size: const Size(40, 60),
-        alignment: const Alignment(2, 0.7),
+        size: const Size(70, 70),
+        alignment: const Alignment(3.9, 0.7),
       ),
       AsteriodData(
-        size: const Size(80, 100),
-        alignment: const Alignment(1.5, -0.5),
+        size: const Size(100, 100),
+        alignment: const Alignment(1.8, -0.5),
       ),
       AsteriodData(
-        size: const Size(40, 50),
-        alignment: const Alignment(3, -0.2),
+        size: const Size(40, 40),
+        alignment: const Alignment(3, -0.3),
       ),
       AsteriodData(
-        size: const Size(60, 30),
-        alignment: const Alignment(2.2, 0.2),
+        size: const Size(60, 60),
+        alignment: const Alignment(2.3, 0.5),
       ),
     ];
 
@@ -112,6 +114,21 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       asteroidData[3].alignment = Alignment(2.2, generateRandomNumber());
     }
+
+    /////////////////////////////
+
+    if (asteriod1.x <= 0.021 && asteriod1.x >= 0.001) {
+      score++;
+    }
+    if (asteriod2.x <= 0.02 && asteriod2.x >= 0.001) {
+      score++;
+    }
+    if (asteriod3.x <= 0.021 && asteriod3.x >= 0.001) {
+      score++;
+    }
+    if (asteriod4.x <= 0.021 && asteriod4.x >= 0.001) {
+      score++;
+    }
   }
 
   bool isShipColoded() {
@@ -155,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bool _isCollided =
           (shipPosition.dx < asteroidPosition.dx + asteroidSize.width &&
               shipPosition.dx + shipSize.width > asteroidPosition.dx &&
-              asteroidPosition.dy < asteroidPosition.dy + asteroidSize.height &&
+              shipPosition.dy < asteroidPosition.dy + asteroidSize.height &&
               shipPosition.dy + shipSize.height > asteroidPosition.dy);
       if (_isCollided) {
         isCollided = true;
@@ -191,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
       time = 0.0;
       velocity = 2.9;
       gravity = -4.9;
+      score = 0;
       isGameRunning = false;
     });
   }
@@ -290,6 +308,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+              Align(
+                alignment: const Alignment(0, 0.95),
+                child: Text(
+                  "Score : $score",
+                  style: const TextStyle(
+                    fontSize: 25,
+                    letterSpacing: 4,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              )
             ],
           ),
         ),
