@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:space_attackers/asteriod_model.dart';
+import 'package:space_attackers/collision_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,9 @@ class _HomeScreenState extends State<HomeScreen> {
   double velocity = 2.9;
   double gravity = -4.9;
   bool isGameRunning = false;
+
+  List<GlobalKey> globalKeys = [];
+  GlobalKey shipGlobalKey = GlobalKey();
 
   List<AsteriodData> asteroidData = [];
 
@@ -46,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void startGame() {
+    resetData();
     isGameRunning = true;
 
     Timer.periodic(
@@ -57,6 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
           maxHeight = velocity * time + gravity * time * time;
 
           shipY = initialPosition - maxHeight;
+
+          if (isShipColoded()) {
+            timer.cancel();
+            isGameRunning = false;
+          }
         });
         moveAsteriod();
       },
@@ -104,10 +114,85 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool isShipColoded() {
+    if (shipY > 1) {
+      return true;
+    } else if (shipY < -0.95) {
+      return true;
+    } else if (chechCollision()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool chechCollision() {
+    bool isCollided = false;
+
+    RenderBox shipRenderBox =
+        shipGlobalKey.currentContext!.findRenderObject() as RenderBox;
+
+    List<CollisionData> collisionData = [];
+
+    for (var element in globalKeys) {
+      RenderBox renderBox =
+          element.currentContext!.findRenderObject() as RenderBox;
+
+      collisionData.add(
+        CollisionData(
+          sizeOfObject: renderBox.size,
+          positionOfBox: renderBox.localToGlobal(Offset.zero),
+        ),
+      );
+    }
+    for (var element in collisionData) {
+      final shipPosition = shipRenderBox.localToGlobal(Offset.zero);
+      final asteroidPosition = element.positionOfBox;
+
+      final asteroidSize = element.sizeOfObject;
+      final shipSize = shipRenderBox.size;
+
+      bool _isCollided =
+          (shipPosition.dx < asteroidPosition.dx + asteroidSize.width &&
+              shipPosition.dx + shipSize.width > asteroidPosition.dx &&
+              asteroidPosition.dy < asteroidPosition.dy + asteroidSize.height &&
+              shipPosition.dy + shipSize.height > asteroidPosition.dy);
+      if (_isCollided) {
+        isCollided = true;
+        break;
+      } else {
+        isCollided = false;
+      }
+    }
+
+    return isCollided;
+  }
+
   @override
   void initState() {
     super.initState();
     asteroidData = setAsteroidData();
+    initialiseGlobalKeys();
+  }
+
+  void initialiseGlobalKeys() {
+    for (int i = 0; i < 4; i++) {
+      globalKeys.add(GlobalKey());
+    }
+  }
+
+  void resetData() {
+    setState(() {
+      asteroidData = setAsteroidData();
+      shipX = 0.0;
+      shipY = 0.0;
+      maxHeight = 0.0;
+      initialPosition = 0.0;
+      time = 0.0;
+      velocity = 2.9;
+      gravity = -4.9;
+      isGameRunning = false;
+    });
   }
 
   @override
@@ -129,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: Alignment(shipX, shipY),
                 child: Container(
+                  key: shipGlobalKey,
                   height: 40,
                   width: 80,
                   decoration: const BoxDecoration(
@@ -141,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: asteroidData[0].alignment,
                 child: Container(
+                  key: globalKeys[0],
                   height: asteroidData[0].size.height,
                   width: asteroidData[0].size.width,
                   decoration: BoxDecoration(
@@ -153,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: asteroidData[1].alignment,
                 child: Container(
+                  key: globalKeys[1],
                   height: asteroidData[1].size.height,
                   width: asteroidData[1].size.width,
                   decoration: BoxDecoration(
@@ -165,6 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: asteroidData[2].alignment,
                 child: Container(
+                  key: globalKeys[2],
                   height: asteroidData[2].size.height,
                   width: asteroidData[2].size.width,
                   decoration: BoxDecoration(
@@ -177,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: asteroidData[3].alignment,
                 child: Container(
+                  key: globalKeys[3],
                   height: asteroidData[3].size.height,
                   width: asteroidData[3].size.width,
                   decoration: BoxDecoration(
@@ -186,6 +276,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              isGameRunning
+                  ? const SizedBox()
+                  : const Align(
+                      alignment: Alignment(0, -0.3),
+                      child: Text(
+                        "TAP TO PLAY",
+                        style: TextStyle(
+                          fontSize: 25,
+                          letterSpacing: 4,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
